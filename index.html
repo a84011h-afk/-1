@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>السيرة النبوية للأطفال - مسابقة تفاعلية</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Cairo & Tajawal for beautiful typography) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                        },
+                        amber: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        gold: '#ffd700',
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        tajawal: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f766e 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        /* Screen Glow Border Effect */
+        #glow-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #glow-overlay.correct-glow {
+            opacity: 1;
+            box-shadow: inset 0 0 60px 20px #22c55e, 0 0 40px 10px #22c55e;
+            animation: pulseGlow 0.8s ease-in-out infinite alternate;
+        }
+
+        #glow-overlay.incorrect-glow {
+            opacity: 1;
+            box-shadow: inset 0 0 60px 20px #ef4444, 0 0 40px 10px #ef4444;
+            animation: pulseGlow 0.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        /* Card styles & hover effects */
+        .q-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .q-card:not(.disabled):hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 25px -5px rgba(245, 158, 11, 0.4);
+        }
+
+        .q-card.disabled {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        /* Custom Pattern Backgrounds */
+        .bg-islamic-pattern {
+            background-color: #0f172a;
+            background-image: radial-gradient(#1e293b 2px, transparent 2px), radial-gradient(#0d9488 1px, #0f172a 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+        }
+
+        /* Smooth Screen Transitions */
+        .screen {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        .screen-hidden {
+            opacity: 0;
+            transform: scale(0.96);
+            pointer-events: none;
+            position: absolute;
+            width: 100%;
+        }
+
+        /* Glowing text */
+        .text-glow {
+            text-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+        }
+
+        /* Option buttons */
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateX(-6px);
+            border-color: #f59e0b;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0d9488;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-islamic-pattern min-h-screen flex flex-col justify-between items-center p-3 sm:p-6">
+
+    <!-- Screen Edge Glow Overlay -->
+    <div id="glow-overlay"></div>
+
+    <!-- Background Decorative Elements -->
+    <div class="fixed top-5 right-5 text-amber-400/20 text-6xl pointer-events-none select-none z-0">
+        <i class="fa-solid fa-star-and-crescent"></i>
+    </div>
+    <div class="fixed bottom-5 left-5 text-emerald-400/20 text-7xl pointer-events-none select-none z-0">
+        <i class="fa-solid fa-mosque"></i>
+    </div>
+
+    <!-- APP CONTAINER -->
+    <div class="w-full max-w-4xl mx-auto z-10 flex flex-col flex-grow justify-between">
+
+        <!-- HEADER / NAVIGATION -->
+        <header class="bg-slate-800/80 backdrop-blur-md border border-amber-500/30 rounded-2xl p-4 mb-6 shadow-xl flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-tr from-amber-500 to-emerald-500 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg border border-amber-300/40">
+                    <i class="fa-solid fa-kaaba"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black text-amber-400 font-tajawal">سيرة النبي ﷺ قبل البعثة</h1>
+                    <p class="text-xs text-slate-300 font-bold">مسابقة تفاعلية للأبطال الصغار <i class="fa-solid fa-heart text-red-400"></i></p>
+                </div>
+            </div>
+
+            <!-- Stats & Sound Toggle -->
+            <div class="flex items-center gap-3 sm:gap-6 bg-slate-900/60 p-2 sm:px-4 sm:py-2 rounded-xl border border-slate-700/50">
+                <!-- Stars / Points -->
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-star text-amber-400 text-xl animate-bounce"></i>
+                    <span id="score-counter" class="text-lg font-black text-amber-400">0</span>
+                </div>
+
+                <!-- Progress Count -->
+                <div class="flex items-center gap-2 text-slate-300 text-sm font-bold border-r border-slate-700 pr-3">
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                    <span id="progress-text">0 / 25</span>
+                </div>
+
+                <!-- Sound Button -->
+                <button id="sound-btn" onclick="toggleSound()" class="w-10 h-10 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 flex items-center justify-center border border-slate-600 transition" title="تشغيل/كتم الصوت">
+                    <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-grow flex flex-col justify-center">
+
+            <!-- 1. MAIN GRID SCREEN -->
+            <div id="main-screen" class="screen transition-all duration-300">
+                <!-- Progress Bar -->
+                <div class="mb-6 bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 shadow-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs sm:text-sm font-bold text-slate-300"><i class="fa-solid fa-trophy text-amber-400 ml-1"></i> نسبة إنجازك للمسابقة</span>
+                        <span id="progress-percentage" class="text-xs sm:text-sm font-black text-amber-400">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-900 rounded-full h-3 sm:h-4 overflow-hidden border border-slate-700">
+                        <div id="progress-bar" class="bg-gradient-to-r from-amber-500 to-emerald-400 h-full w-0 transition-all duration-500 rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Grid Title Instructions -->
+                <div class="text-center mb-5">
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-200">اختر رقم السؤال وابدأ التحدي! <i class="fa-solid fa-hand-pointer text-amber-400"></i></h2>
+                </div>
+
+                <!-- Grid of 25 Cards -->
+                <div id="questions-grid" class="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-5 gap-2 sm:gap-4 mb-6">
+                    <!-- Javascript will populate 25 buttons here -->
+                </div>
+            </div>
+
+            <!-- 2. QUESTION VIEW SCREEN -->
+            <div id="question-screen" class="screen screen-hidden transition-all duration-300">
+                <div class="bg-slate-800/90 backdrop-blur-md border-2 border-amber-500/40 rounded-3xl p-5 sm:p-8 shadow-2xl relative">
+                    
+                    <!-- Top Navigation Bar inside Question -->
+                    <div class="flex justify-between items-center mb-6 border-b border-slate-700/80 pb-4">
+                        <span id="q-badge" class="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black px-4 py-1.5 rounded-full text-sm sm:text-base shadow-md">
+                            السؤال رقم 1
+                        </span>
+
+                        <button onclick="showMainScreen()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-slate-600">
+                            <i class="fa-solid fa-house text-amber-400"></i>
+                            <span>الرئيسية</span>
+                        </button>
+                    </div>
+
+                    <!-- Question Text Card -->
+                    <div class="bg-slate-900/80 p-5 sm:p-7 rounded-2xl border border-slate-700 mb-6 shadow-inner text-center">
+                        <p id="q-text" class="text-lg sm:text-2xl font-bold text-slate-100 leading-relaxed font-tajawal">
+                            نص السؤال سيظهر هنا...
+                        </p>
+                    </div>
+
+                    <!-- Options Container -->
+                    <div id="options-container" class="space-y-3 sm:space-y-4 mb-6">
+                        <!-- Options generated dynamically -->
+                    </div>
+
+                    <!-- Action Bar / Next Button -->
+                    <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-700/60">
+                        <div id="feedback-msg" class="font-bold text-base sm:text-lg"></div>
+                        <button id="next-btn" onclick="showMainScreen()" class="hidden bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold px-6 py-2.5 rounded-xl transition shadow-lg flex items-center gap-2">
+                            <span>العودة للشبكة</span>
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 3. GAME COMPLETE SCREEN -->
+            <div id="completion-screen" class="screen screen-hidden text-center py-8">
+                <div class="bg-slate-800/90 backdrop-blur-md border-2 border-amber-400 rounded-3xl p-8 max-w-lg mx-auto shadow-2xl">
+                    <div class="w-24 h-24 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-amber-400 animate-bounce">
+                        <i class="fa-solid fa-trophy text-5xl text-amber-400"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-amber-400 mb-2">أحسنت يا بطل! 🎉</h2>
+                    <p class="text-slate-200 text-lg mb-6">لقد أتممت جميع أسئلة سيرة النبي ﷺ قبل البعثة بنجاح!</p>
+                    
+                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-700 mb-6 flex justify-around items-center">
+                        <div>
+                            <p class="text-slate-400 text-xs">النقاط الإجمالية</p>
+                            <p id="final-score" class="text-2xl font-black text-amber-400">0</p>
+                        </div>
+                        <div class="h-8 w-px bg-slate-700"></div>
+                        <div>
+                            <p class="text-slate-400 text-xs">الأسئلة المجابة</p>
+                            <p class="text-2xl font-black text-emerald-400">25 / 25</p>
+                        </div>
+                    </div>
+
+                    <button onclick="restartGame()" class="w-full bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-600 hover:to-emerald-600 text-slate-950 font-black py-3.5 rounded-xl shadow-xl transition transform active:scale-95 text-lg">
+                        <i class="fa-solid fa-rotate-right ml-2"></i> اللعب من جديد
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="text-center text-slate-400 text-xs mt-6 py-2 border-t border-slate-800/80">
+            <p>تعلم السيرة النبوية الشريفة للأطفال بأسلوب ممتع وتفاعلي ✨</p>
+        </footer>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // ----------------------------------------------------
+        // DATA: 25 Questions with 1 correct and 2 wrong options
+        // ----------------------------------------------------
+        const questionsData = [
+            {
+                id: 1,
+                question: "ما هو النسب الشريف للنبي صلى الله عليه وسلم بين قبائل العرب؟",
+                options: [
+                    { text: "من بني هاشم، وهم أشرف فروع قريش، وقريش أشرف قبيلة.", correct: true },
+                    { text: "من بني أمية، وهم أشرف قبيلة في العرب.", correct: false },
+                    { text: "من بني مخزوم، وهم أزكى بيوت العرب نسباً.", correct: false }
+                ]
+            },
+            {
+                id: 2,
+                question: "متى توفي والد النبي صلى الله عليه وسلم (عبد الله)؟",
+                options: [
+                    { text: "بعد ولادته بشهرين.", correct: false },
+                    { text: "وأمه حامل به لشهرين فحسب.", correct: true },
+                    { text: "قبل ولادته بسنة كاملة.", correct: false }
+                ]
+            },
+            {
+                id: 3,
+                question: "في أي سن توفيت أم النبي صلى الله عليه وسلم (آمنة)؟",
+                options: [
+                    { text: "عندما كان في الثامنة من عمره.", correct: false },
+                    { text: "بعد البعثة النبوية بثلاث سنوات.", correct: false },
+                    { text: "عندما أصبح له من العمر ست سنوات.", correct: true }
+                ]
+            },
+            {
+                id: 4,
+                question: "من الذي كفل النبي صلى الله عليه وسلم بعد وفاة أمه مباشرة؟",
+                options: [
+                    { text: "جده عبد المطلب.", correct: true },
+                    { text: "عمه أبو طالب.", correct: false },
+                    { text: "عمه العباس.", correct: false }
+                ]
+            },
+            {
+                id: 5,
+                question: "كم كان عمر النبي صلى الله عليه وسلم حين توفي جده عبد المطلب؟",
+                options: [
+                    { text: "خمس سنوات.", correct: false },
+                    { text: "ثمان سنوات.", correct: true },
+                    { text: "عشر سنوات.", correct: false }
+                ]
+            },
+            {
+                id: 6,
+                question: "من هو العم الذي كفل النبي صلى الله عليه وسلم بعد وفاة جده واشتد ساعده في كنفه؟",
+                options: [
+                    { text: "أبو لهب.", correct: false },
+                    { text: "حمزة بن عبد المطلب.", correct: false },
+                    { text: "أبو طالب.", correct: true }
+                ]
+            },
+            {
+                id: 7,
+                question: "إلى أي حدث من حياة النبي يشير قول الله تعالى: {أَلَمْ يَجِدْكَ يَتِيمًا فَآوَى}؟",
+                options: [
+                    { text: "إلى نشأته يتيماً وكفالة الله له.", correct: true },
+                    { text: "إلى رحلته للتجارة في الشام مع عمه.", correct: false },
+                    { text: "إلى عزلته وتعبده في غار حراء.", correct: false }
+                ]
+            },
+            {
+                id: 8,
+                question: "كم أمضى النبي صلى الله عليه وسلم من طفولته في الصحراء عند بني سعد؟",
+                options: [
+                    { text: "سنتين فقط.", correct: false },
+                    { text: "السنوات الأربع الأولى من طفولته.", correct: true },
+                    { text: "ست سنوات كاملة.", correct: false }
+                ]
+            },
+            {
+                id: 9,
+                question: "ما هي أبرز الفوائد التي اكتسبها النبي صلى الله عليه وسلم من نشأته في البادية؟",
+                options: [
+                    { text: "تعلم لغات الأمم المجاورة وكتبهم القديمة.", correct: false },
+                    { text: "قوة البنية، سلامة الجسم، وفصاحة اللسان.", correct: true },
+                    { text: "إتقان صناعة الأسلحة الفتاكة والتجارة.", correct: false }
+                ]
+            },
+            {
+                id: 10,
+                question: "كيف كان تعامل جده عبد المطلب عندما كان يجلس النبي الصغير على فراشه الخاص؟",
+                options: [
+                    { text: "كان يدافع عنه ويقول لأعمامه: «دعوا ابني، فوالله إن له لشأنا».", correct: true },
+                    { text: "كان يمنعه خشية إزعاج أعمامه الكبار.", correct: false },
+                    { text: "كان يأمره بالجلوس بعيداً عن مجالس الكبار.", correct: false }
+                ]
+            },
+            {
+                id: 11,
+                question: "ماذا كان يعمل النبي صلى الله عليه وسلم في أوائل شبابه لأهل مكة؟",
+                options: [
+                    { text: "كان يعمل حداداً يصنع السيوف.", correct: false },
+                    { text: "كان يحرس الكعبة المشرفة ليلاً.", correct: false },
+                    { text: "كان يرعى أغنامهم بقراريط يأخذها أجراً.", correct: true }
+                ]
+            },
+            {
+                id: 12,
+                question: "ماذا قال النبي صلى الله عليه وسلم مؤكداً على عمل الأنبياء السابقين؟",
+                options: [
+                    { text: "«ما بعث الله نبيا إلا رعى الغنم».", correct: true },
+                    { text: "«ما من نبي إلا وقد تاجر في الأسواق».", correct: false },
+                    { text: "«ما من نبي إلا وقد عمل بالنجارة».", correct: false }
+                ]
+            },
+            {
+                id: 13,
+                question: "في أي سن عمل النبي صلى الله عليه وسلم بالتجارة في مال خديجة بنت خويلد؟",
+                options: [
+                    { text: "عندما بلغ العشرين من عمره.", correct: false },
+                    { text: "عندما بلغ من عمره خمساً وعشرين سنة.", correct: true },
+                    { text: "بعد بلوغه الثلاثين من عمره.", correct: false }
+                ]
+            },
+            {
+                id: 14,
+                question: "كيف كان موقف النبي صلى الله عليه وسلم من لهو شباب مكة وعبثهم في شبابه؟",
+                options: [
+                    { text: "كان يشاركهم أحياناً في سهراتهم.", correct: false },
+                    { text: "لم يشارك أقرانه قط؛ فقد عصمه الله وألقى عليه النوم حين أراد سماع عرس.", correct: true },
+                    { text: "كان يدير مجالس اللعب بنفسه.", correct: false }
+                ]
+            },
+            {
+                id: 15,
+                question: "هل شارك النبي صلى الله عليه وسلم قومه في عبادة الأوثان قبل البعثة؟",
+                options: [
+                    { text: "لم يشارك قومه في عبادة الأوثان ولا شرب الخمر ولا القمار.", correct: true },
+                    { text: "كان يعبدها كباقي قومه في شبابه المبكر.", correct: false },
+                    { text: "شاركهم ولكن تركها قبل البعثة بسنة.", correct: false }
+                ]
+            },
+            {
+                id: 16,
+                question: "ما هي الحادثة الكبرى التي أثبتت رجحان عقل النبي صلى الله عليه وسلم وأصالة رأيه قبل البعثة؟",
+                options: [
+                    { text: "وثيقة حلف الفضول لنصرة المظلومين.", correct: false },
+                    { text: "حادثة وضع الحجر الأسود وحل النزاع بين القبائل.", correct: true },
+                    { text: "بناء الكعبة المشرفة بيديه منفرداً.", correct: false }
+                ]
+            },
+            {
+                id: 17,
+                question: "ما هو الحل الحكيم الذي قدمه النبي صلى الله عليه وسلم لمشكلة وضع الحجر الأسود؟",
+                options: [
+                    { text: "وضعه في رداء، وأمر كل قبيلة أن تأخذ بطرف منه ثم وضعه بيده.", correct: true },
+                    { text: "أن يضعه بنفسه دون مشاورة أحد لأنه الأمين.", correct: false },
+                    { text: "تأجيل وضع الحجر للعام القادم لتهدئة النفوس.", correct: false }
+                ]
+            },
+            {
+                id: 18,
+                question: "ما هي الألقاب والأوصاف التي اشتهر بها النبي صلى الله عليه وسلم بين قومه في شبابه؟",
+                options: [
+                    { text: "الشاعر الحكيم والكاهن العبقري.", correct: false },
+                    { text: "فارس مكة المغوار وقائد جيوشها.", correct: false },
+                    { text: "الصادق الأمين، حسن المعاملة، والوفاء بالوعد.", correct: true }
+                ]
+            },
+            {
+                id: 19,
+                question: "ما الذي دفع خديجة بنت خويلد لطلب زواج النبي صلى الله عليه وسلم؟",
+                options: [
+                    { text: "ما رأت من أمانته وإخلاصه ونجاح تجارته وأخلاقه الفاضلة.", correct: true },
+                    { text: "قرابته المباشرة وثروته الطائلة.", correct: false },
+                    { text: "إصرار أعمامه على مصاهرتها.", correct: false }
+                ]
+            },
+            {
+                id: 20,
+                question: "كم كان الفرق العمري بين النبي صلى الله عليه وسلم والسيدة خديجة حين تزوجها؟",
+                options: [
+                    { text: "كان في سن متقاربة جداً دون فرق.", correct: false },
+                    { text: "كان النبي أصغر منها بخمسة عشر عاماً.", correct: true },
+                    { text: "كان عمره 50 سنة وعمرها 40 سنة.", correct: false }
+                ]
+            },
+            {
+                id: 21,
+                question: "ماذا قالت السيدة خديجة لتطمئن النبي صلى الله عليه وسلم بعد نزول الوحي في غار حراء؟",
+                options: [
+                    { text: "«كلا والله لا يخزيك الله أبدا، إنك لتصل الرحم، وتحمل الكل...».", correct: true },
+                    { text: "«أبشر بخير حال، فإنك ملك مقرب عند الله».", correct: false },
+                    { text: "«لقد كنت أعلم أنك ستصبح ملكاً على العرب».", correct: false }
+                ]
+            },
+            {
+                id: 22,
+                question: "كم مرة سافر فيها النبي صلى الله عليه وسلم خارج مكة في شبابه قبل البعثة؟",
+                options: [
+                    { text: "أربع مرات متفرقة للتجارة.", correct: false },
+                    { text: "ثلاث مرات نحو اليمن والحبشة.", correct: false },
+                    { text: "مرتان فقط، وكانت كلتاهما إلى مدينة (بصرى) في الشام.", correct: true }
+                ]
+            },
+            {
+                id: 23,
+                question: "مع من كانت رحلة النبي صلى الله عليه وسلم الأولى خارج مكة حين كان عمره 12 سنة؟",
+                options: [
+                    { text: "مع عمه أبي طالب.", correct: true },
+                    { text: "مع زوجة عمه وبعض أصحابه.", correct: false },
+                    { text: "مع السيدة خديجة بنت خويلد.", correct: false }
+                ]
+            },
+            {
+                id: 24,
+                question: "ما هو الغار الذي حبب الله إلى النبي صلى الله عليه وسلم الخلوة فيه للتعبد قبل البعثة؟",
+                options: [
+                    { text: "غار الثور.", correct: false },
+                    { text: "غار حراء.", correct: true },
+                    { text: "غار الكهف.", correct: false }
+                ]
+            },
+            {
+                id: 25,
+                question: "في أي شهر ومقدار من الوقت كان النبي صلى الله عليه وسلم يخلو لنفسه في غار حراء؟",
+                options: [
+                    { text: "مقدار أسبوعين في شهر ربيع الأول.", correct: false },
+                    { text: "مقدار شهر واحد، وكان ذلك في شهر رمضان.", correct: true },
+                    { text: "مقدار 40 يوماً في شهر محرم.", correct: false }
+                ]
+            }
+        ];
+
+        // ----------------------------------------------------
+        // STATE MANAGEMENT
+        // ----------------------------------------------------
+        let answeredQuestions = JSON.parse(localStorage.getItem('quiz_answered')) || {};
+        let totalScore = parseInt(localStorage.getItem('quiz_score')) || 0;
+        let currentQuestionObj = null;
+        let soundEnabled = true;
+
+        // ----------------------------------------------------
+        // WEB AUDIO API SOUND SYNTHESIZER
+        // ----------------------------------------------------
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        // Play pleasant success chime (Chord)
+        function playCorrectSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+
+                gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 0.6);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now + idx * 0.08);
+                osc.stop(now + idx * 0.08 + 0.6);
+            });
+        }
+
+        // Play gentle error tone
+        function playIncorrectSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.exponentialRampToValueAtTime(110, now + 0.35);
+
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.35);
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const soundIcon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                soundIcon.className = 'fa-solid fa-volume-high';
+            } else {
+                soundIcon.className = 'fa-solid fa-volume-xmark text-slate-500';
+            }
+        }
+
+        // ----------------------------------------------------
+        // UI FUNCTIONS & INITIALIZATION
+        // ----------------------------------------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            renderGrid();
+            updateStats();
+        });
+
+        // Render the 25 question grid buttons
+        function renderGrid() {
+            const gridContainer = document.getElementById('questions-grid');
+            gridContainer.innerHTML = '';
+
+            questionsData.forEach(q => {
+                const isAnswered = answeredQuestions.hasOwnProperty(q.id);
+                const isCorrect = isAnswered && answeredQuestions[q.id].isCorrect;
+
+                const card = document.createElement('button');
+                card.id = `q-card-${q.id}`;
+                
+                let baseClasses = "q-card p-3 sm:p-5 rounded-2xl font-black text-xl sm:text-2xl flex flex-col items-center justify-center border-2 transition shadow-md min-h-[75px] sm:min-h-[90px] relative ";
+                
+                if (isAnswered) {
+                    baseClasses += "disabled ";
+                    if (isCorrect) {
+                        baseClasses += "border-emerald-500/50 bg-emerald-950/40 text-emerald-400";
+                    } else {
+                        baseClasses += "border-red-500/50 bg-red-950/40 text-red-400";
+                    }
+                } else {
+                    baseClasses += "border-amber-500/40 bg-gradient-to-br from-slate-800 to-slate-900 text-amber-400 hover:border-amber-400 hover:text-amber-300";
+                }
+
+                card.className = baseClasses;
+                card.onclick = () => openQuestion(q.id);
+
+                // Card Content
+                let cardHTML = `<span>${q.id}</span>`;
+                if (isAnswered) {
+                    if (isCorrect) {
+                        cardHTML += `<span class="text-xs text-emerald-400 mt-1 font-bold"><i class="fa-solid fa-circle-check"></i> صحيح</span>`;
+                    } else {
+                        cardHTML += `<span class="text-xs text-red-400 mt-1 font-bold"><i class="fa-solid fa-circle-xmark"></i> خطأ</span>`;
+                    }
+                } else {
+                    cardHTML += `<span class="text-[10px] sm:text-xs text-slate-400 mt-1 font-normal">سؤال</span>`;
+                }
+
+                card.innerHTML = cardHTML;
+                gridContainer.appendChild(card);
+            });
+        }
+
+        // Open specific question
+        function openQuestion(id) {
+            if (answeredQuestions.hasOwnProperty(id)) return; // Already answered
+
+            currentQuestionObj = questionsData.find(q => q.id === id);
+            if (!currentQuestionObj) return;
+
+            // Fill UI Data
+            document.getElementById('q-badge').innerText = `السؤال رقم ${currentQuestionObj.id}`;
+            document.getElementById('q-text').innerText = currentQuestionObj.question;
+            document.getElementById('feedback-msg').innerHTML = '';
+            document.getElementById('next-btn').classList.add('hidden');
+
+            // Render Options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            // Shuffle options for variety
+            const shuffledOptions = [...currentQuestionObj.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-right p-4 sm:p-5 rounded-2xl bg-slate-900/90 border-2 border-slate-700/80 hover:bg-slate-800 text-slate-100 font-bold text-base sm:text-lg flex items-center justify-between shadow-md transition";
+                btn.onclick = () => handleAnswer(opt, btn, shuffledOptions);
+                
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-amber-400 text-xs font-black">
+                            ${index + 1}
+                        </span>
+                        <span>${opt.text}</span>
+                    </div>
+                    <i class="fa-solid fa-circle-dot opacity-20"></i>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Switch Screen
+            switchScreen('question-screen');
+        }
+
+        // Handle option click
+        function handleAnswer(selectedOpt, selectedBtn, allOptions) {
+            initAudio();
+            const optionBtns = document.querySelectorAll('.option-btn');
+            optionBtns.forEach(btn => btn.disabled = true);
+
+            const glowOverlay = document.getElementById('glow-overlay');
+            const feedbackMsg = document.getElementById('feedback-msg');
+
+            const isCorrect = selectedOpt.correct;
+
+            // Save to state
+            answeredQuestions[currentQuestionObj.id] = {
+                isCorrect: isCorrect
+            };
+
+            if (isCorrect) {
+                totalScore += 10;
+                localStorage.setItem('quiz_score', totalScore);
+                
+                // Audio
+                playCorrectSound();
+
+                // Correct styling
+                selectedBtn.classList.remove('bg-slate-900/90', 'border-slate-700/80');
+                selectedBtn.classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-300');
+                selectedBtn.querySelector('i').className = "fa-solid fa-circle-check text-emerald-400 text-xl";
+
+                // Screen Glow Effect
+                glowOverlay.className = "correct-glow";
+                setTimeout(() => glowOverlay.className = "", 1200);
+
+                // Confetti FX
+                triggerConfetti();
+
+                feedbackMsg.innerHTML = `<span class="text-emerald-400 flex items-center gap-2"><i class="fa-solid fa-face-smile-beam text-xl"></i> إجابة صحيحة وممتازة! أحسنت يا بطل.</span>`;
+
+            } else {
+                // Audio
+                playIncorrectSound();
+
+                // Incorrect styling
+                selectedBtn.classList.remove('bg-slate-900/90', 'border-slate-700/80');
+                selectedBtn.classList.add('bg-red-950/80', 'border-red-500', 'text-red-300');
+                selectedBtn.querySelector('i').className = "fa-solid fa-circle-xmark text-red-400 text-xl";
+
+                // Highlight correct answer
+                optionBtns.forEach(btn => {
+                    if (btn.innerText.includes(allOptions.find(o => o.correct).text)) {
+                        btn.classList.remove('bg-slate-900/90', 'border-slate-700/80');
+                        btn.classList.add('bg-emerald-950/40', 'border-emerald-500/60', 'text-emerald-300');
+                    }
+                });
+
+                // Screen Glow Effect
+                glowOverlay.className = "incorrect-glow";
+                setTimeout(() => glowOverlay.className = "", 1200);
+
+                feedbackMsg.innerHTML = `<span class="text-red-400 flex items-center gap-2"><i class="fa-solid fa-face-sad-tear text-xl"></i> إجابة غير صحيحة، حاول التركيز في السؤال القادم!</span>`;
+            }
+
+            // Save state
+            localStorage.setItem('quiz_answered', JSON.stringify(answeredQuestions));
+            updateStats();
+            renderGrid();
+
+            // Show Return/Next button
+            document.getElementById('next-btn').classList.remove('hidden');
+
+            // Auto return to main grid after short delay if answer is correct
+            setTimeout(() => {
+                if (isCorrect && document.getElementById('question-screen').classList.contains('screen-hidden') === false) {
+                    showMainScreen();
+                }
+            }, 2500);
+        }
+
+        // Confetti effect on correct answer
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.7 },
+                    colors: ['#22c55e', '#f59e0b', '#10b981', '#ffd700']
+                });
+            }
+        }
+
+        // Return to grid
+        function showMainScreen() {
+            const count = Object.keys(answeredQuestions).length;
+            if (count === 25) {
+                document.getElementById('final-score').innerText = totalScore;
+                switchScreen('completion-screen');
+                triggerConfetti();
+            } else {
+                switchScreen('main-screen');
+            }
+        }
+
+        // Screen switching helper
+        function switchScreen(screenId) {
+            const screens = ['main-screen', 'question-screen', 'completion-screen'];
+            screens.forEach(id => {
+                const el = document.getElementById(id);
+                if (id === screenId) {
+                    el.classList.remove('screen-hidden');
+                } else {
+                    el.classList.add('screen-hidden');
+                }
+            });
+        }
+
+        // Update score & progress indicators
+        function updateStats() {
+            const count = Object.keys(answeredQuestions).length;
+            document.getElementById('progress-text').innerText = `${count} / 25`;
+            document.getElementById('score-counter').innerText = totalScore;
+
+            const percentage = Math.round((count / 25) * 100);
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+            document.getElementById('progress-percentage').innerText = `${percentage}%`;
+        }
+
+        // Restart entire game
+        function restartGame() {
+            localStorage.removeItem('quiz_answered');
+            localStorage.removeItem('quiz_score');
+            answeredQuestions = {};
+            totalScore = 0;
+            updateStats();
+            renderGrid();
+            switchScreen('main-screen');
+        }
+    </script>
+</body>
+</html>
